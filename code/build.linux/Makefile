@@ -333,7 +333,6 @@ OFILES = $(C_OFILES) $(S_OFILES)
 
 $(PROGRAM): $(OFILES)
 	$(LD) $(OFILES) $(LDFLAGS) -o $(PROGRAM)
-	pwd
 
 $(C_OFILES): %.o:
 	$(CC) $(CFLAGS) -c $<
