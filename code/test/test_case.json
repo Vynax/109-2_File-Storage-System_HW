@@ -1,0 +1,16 @@
+[
+    {
+        "case_name": "echo 1",
+        "command": "echo",
+        "isfile": true,
+        "args": 1,
+        "answer": "echo1.txt"
+    },
+    {
+        "case_name": "echo 2",
+        "command": "echo",
+        "isfile": false,
+        "args": 2,
+        "answer": "2"
+    }
+]
