@@ -1,3 +1,4 @@
 *.o
 *.ii
 *.coff
+__pycache__/
