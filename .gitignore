@@ -2,3 +2,4 @@
 *.ii
 *.coff
 __pycache__/
+code/test/halt
