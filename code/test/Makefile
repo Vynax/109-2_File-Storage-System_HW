@@ -124,6 +124,7 @@ start.o: start.S ../userprog/syscall.h
 halt.o: halt.c
 	$(CC) $(CFLAGS) -c halt.c
 halt: halt.o start.o
+	echo we are css438
 	$(LD) $(LDFLAGS) start.o halt.o -o halt.coff
 	$(COFF2NOFF) halt.coff halt
 
