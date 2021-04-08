@@ -38,17 +38,36 @@ def compare(stu_output, answer):
         if character.isprintable() or character == '\n':
             alphanumeric += character
 
-    if alphanumeric != answer:
-        print_dash()
-        print("Expected output:")
-        print(answer)
-        print_dash()
-        print("Your output:")
-        print(stu_output)
-        print_dash()
+    same = True
+    i = 0
+    alph_split = alphanumeric.split("\n")
+    answer_split = answer.split("\n")
 
-        return False
-    return True
+    if (len(alph_split) != len(answer_split)):  # judge false when the lengths are different
+        same = False
+    else:
+        while (i < len(alph_split)):
+            if "Ticks" in alph_split[i] or "Ticks" in answer_split[i]:
+                i += 1
+                continue
+            if alph_split[i] != answer_split[i]:
+                same = False
+                break
+            i += 1
+
+    if same == False:
+        print_diff(stu_output, answer)
+    return same
+
+
+def print_diff(stu_output, answer):
+    print_dash()
+    print("Expected output:")
+    print(answer)
+    print_dash()
+    print("Your output:")
+    print(stu_output)
+    print_dash()
 
 
 def test_case(file_name):
