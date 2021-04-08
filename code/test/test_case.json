@@ -12,7 +12,7 @@
         "command": "echo",
         "isfile": false,
         "args": "2",
-        "answer": "2",
+        "answer": "2\n",
         "score": 10
     },
     {

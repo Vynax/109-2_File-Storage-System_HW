@@ -33,7 +33,12 @@ def get_Output(command):
 
 
 def compare(stu_output, answer):
-    if stu_output != answer:
+    alphanumeric = ""
+    for character in stu_output:
+        if character.isprintable() or character == '\n':
+            alphanumeric += character
+
+    if alphanumeric != answer:
         print_dash()
         print("Expected output:")
         print(answer)

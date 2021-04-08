@@ -3,3 +3,5 @@
 *.coff
 __pycache__/
 code/test/halt
+code/build.linux/Makefile.dep
+code/build.linux/nachos
