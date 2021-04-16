@@ -8,31 +8,34 @@
  *
  **************************************************************/
 
-#ifndef __USERPROG_KSYSCALL_H__ 
-#define __USERPROG_KSYSCALL_H__ 
+#ifndef __USERPROG_KSYSCALL_H__
+#define __USERPROG_KSYSCALL_H__
 
 #include "kernel.h"
 
 #include "synchconsole.h"
 
-
 void SysHalt()
 {
-  kernel->interrupt->Halt();
+    kernel->interrupt->Halt();
 }
 
 int SysAdd(int op1, int op2)
 {
-  return op1 + op2;
+    return op1 + op2;
 }
 
 int SysCreate(char *filename)
 {
-	// return value
-	// 1: success
-	// 0: failed
-	return kernel->interrupt->CreateFile(filename);
+    // return value
+    // 1: success
+    // 0: failed
+    return kernel->interrupt->CreateFile(filename);
 }
 
+void SysPrintInt(int n)
+{
+    kernel->synchConsoleOut->PrintInt(n);
+}
 
 #endif /* ! __USERPROG_KSYSCALL_H__ */

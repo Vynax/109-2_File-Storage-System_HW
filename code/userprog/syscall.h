@@ -50,7 +50,7 @@
  * from the system call entry point in exception.cc.
  */
 
-void PrintInt();
+void PrintInt(int n);
 
 
 /* Stop Nachos, and print out performance stats */

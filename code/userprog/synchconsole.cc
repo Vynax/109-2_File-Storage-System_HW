@@ -1,9 +1,9 @@
-// synchconsole.cc 
-//	Routines providing synchronized access to the keyboard 
+// synchconsole.cc
+//	Routines providing synchronized access to the keyboard
 //	and console display hardware devices.
 //
 // Copyright (c) 1992-1996 The Regents of the University of California.
-// All rights reserved.  See copyright.h for copyright notice and limitation 
+// All rights reserved.  See copyright.h for copyright notice and limitation
 // of liability and disclaimer of warranty provisions.
 
 #include "copyright.h"
@@ -30,9 +30,9 @@ SynchConsoleInput::SynchConsoleInput(char *inputFile)
 //----------------------------------------------------------------------
 
 SynchConsoleInput::~SynchConsoleInput()
-{ 
-    delete consoleInput; 
-    delete lock; 
+{
+    delete consoleInput;
+    delete lock;
     delete waitFor;
 }
 
@@ -41,13 +41,12 @@ SynchConsoleInput::~SynchConsoleInput()
 //      Read a character typed at the keyboard, waiting if necessary.
 //----------------------------------------------------------------------
 
-char
-SynchConsoleInput::GetChar()
+char SynchConsoleInput::GetChar()
 {
     char ch;
 
     lock->Acquire();
-    waitFor->P();	// wait for EOF or a char to be available.
+    waitFor->P(); // wait for EOF or a char to be available.
     ch = consoleInput->GetChar();
     lock->Release();
     return ch;
@@ -59,8 +58,7 @@ SynchConsoleInput::GetChar()
 //	anyone waiting.
 //----------------------------------------------------------------------
 
-void
-SynchConsoleInput::CallBack()
+void SynchConsoleInput::CallBack()
 {
     waitFor->V();
 }
@@ -86,9 +84,9 @@ SynchConsoleOutput::SynchConsoleOutput(char *outputFile)
 //----------------------------------------------------------------------
 
 SynchConsoleOutput::~SynchConsoleOutput()
-{ 
-    delete consoleOutput; 
-    delete lock; 
+{
+    delete consoleOutput;
+    delete lock;
     delete waitFor;
 }
 
@@ -97,8 +95,7 @@ SynchConsoleOutput::~SynchConsoleOutput()
 //      Write a character to the console display, waiting if necessary.
 //----------------------------------------------------------------------
 
-void
-SynchConsoleOutput::PutChar(char ch)
+void SynchConsoleOutput::PutChar(char ch)
 {
     lock->Acquire();
     consoleOutput->PutChar(ch);
@@ -108,12 +105,21 @@ SynchConsoleOutput::PutChar(char ch)
 
 //----------------------------------------------------------------------
 // SynchConsoleOutput::CallBack
-//      Interrupt handler called when it's safe to send the next 
+//      Interrupt handler called when it's safe to send the next
 //	character can be sent to the display.
 //----------------------------------------------------------------------
 
-void
-SynchConsoleOutput::CallBack()
+void SynchConsoleOutput::CallBack()
 {
     waitFor->V();
+}
+
+// My PrintInt
+
+void SynchConsoleOutput::PrintInt(int n)
+{
+    lock->Acquire();
+    consoleOutput->PrintInt(n);
+    waitFor->P();
+    lock->Release();
 }
