@@ -64,6 +64,8 @@ ExceptionHandler(ExceptionType which)
                         cout<<"in exception\n";
 			ASSERTNOTREACHED();
 			break;
+		case SC_PrintInt:
+			break;
 		case SC_MSG:
 			DEBUG(dbgSys, "Message received.\n");
 			val = kernel->machine->ReadRegister(4);

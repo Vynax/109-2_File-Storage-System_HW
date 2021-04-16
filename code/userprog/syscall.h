@@ -36,6 +36,7 @@
 #define SC_ThreadJoin   15
 #define SC_Add		42
 #define SC_MSG		100
+#define SC_PrintInt 101
 
 #ifndef IN_ASM
 
@@ -48,6 +49,9 @@
  * are then invoked in the Nachos kernel, after appropriate error checking, 
  * from the system call entry point in exception.cc.
  */
+
+void PrintInt();
+
 
 /* Stop Nachos, and print out performance stats */
 void Halt();			
