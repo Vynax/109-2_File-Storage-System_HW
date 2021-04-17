@@ -195,12 +195,7 @@ void ConsoleOutput::PrintInt(int n)
         n = n / 10;
     }
 
-    if (counter == 1)
-        switch_times = 0;
-    else if (counter == 2)
-        switch_times = 1;
-    else
-        switch_times = counter;
+    switch_times = counter / 2;
 
     for (int i = 0; i < switch_times; i++)
     {
