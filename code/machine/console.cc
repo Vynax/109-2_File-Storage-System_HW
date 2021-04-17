@@ -178,8 +178,8 @@ void ConsoleOutput::PrintInt(int n)
     ASSERT(putBusy == FALSE);
     char array[32];
     int counter = 0;
-    int limit;    //if length = 2, array should only switch once
-    int temp = 0; // temporary save digit
+    int switch_times; //if length = 2, array should only switch once
+    int temp = 0;     // temporary save digit
     if (n < 0)
     {
         counter++;
@@ -195,11 +195,14 @@ void ConsoleOutput::PrintInt(int n)
         n = n / 10;
     }
 
-    if (counter == 2)
-        limit = 1;
+    if (counter == 1)
+        switch_times = 0;
+    else if (counter == 2)
+        switch_times = 1;
     else
-        limit = counter;
-    for (int i = 0; i < limit; i++)
+        switch_times = counter;
+
+    for (int i = 0; i < switch_times; i++)
     {
         array[i] = array[i] ^ array[counter - i - 1];
         array[counter - i - 1] = array[i] ^ array[counter - i - 1];
