@@ -52,6 +52,7 @@ int SysClose(OpenFileId id)
     catch (std::string e)
     {
         throw e;
+        return 0;
     }
     return 1;
 }
