@@ -59,15 +59,21 @@ void ExceptionHandler(ExceptionType which)
     case SyscallException:
         switch (type)
         {
+    // =================================below is my code=================================================
+        case SC_PrintInt:
+            val = kernel->machine->ReadRegister(4);
+            SysPrintInt(val);
+            kernel->machine->WriteRegister(PrevPCReg, kernel->machine->ReadRegister(PCReg));
+            kernel->machine->WriteRegister(PCReg, kernel->machine->ReadRegister(PCReg) + 4);
+            kernel->machine->WriteRegister(NextPCReg, kernel->machine->ReadRegister(PCReg) + 4);
+            return;
+            ASSERTNOTREACHED();
+            break;
+    // =================================above is my code=================================================
         case SC_Halt:
             DEBUG(dbgSys, "Shutdown, initiated by user program.\n");
             SysHalt();
             cout << "in exception\n";
-            ASSERTNOTREACHED();
-            break;
-        case SC_PrintInt:
-            val = kernel->machine->ReadRegister(4);
-            SysPrintInt(val);
             ASSERTNOTREACHED();
             break;
         case SC_MSG:

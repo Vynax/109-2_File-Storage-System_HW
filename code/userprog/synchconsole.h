@@ -43,7 +43,7 @@ public:
     ~SynchConsoleOutput();
 
     void PutChar(char ch); // Write a character, waiting if necessary
-    void PrintInt(int n);
+    void PrintInt(int n);  // =================================this is my code=================================================
 
 private:
     ConsoleOutput *consoleOutput; // the hardware display

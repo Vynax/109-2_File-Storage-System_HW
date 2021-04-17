@@ -171,16 +171,20 @@ void ConsoleOutput::PutChar(char ch)
     kernel->interrupt->Schedule(this, ConsoleTime, ConsoleWriteInt);
 }
 
+// =================================below is my code=================================================
+
 void ConsoleOutput::PrintInt(int n)
 {
     ASSERT(putBusy == FALSE);
     char array[32];
     int counter = 0;
+    int limit;    //if length = 2, array should only switch once
     int temp = 0; // temporary save digit
     if (n < 0)
     {
         counter++;
         array[0] = '-';
+        n = -n;
     }
 
     while (n != 0)
@@ -188,9 +192,26 @@ void ConsoleOutput::PrintInt(int n)
         temp = n % 10;
         array[counter] = '0' + temp;
         counter++;
+        n = n / 10;
     }
 
+    if (counter == 2)
+        limit = 1;
+    else
+        limit = counter;
+    for (int i = 0; i < limit; i++)
+    {
+        array[i] = array[i] ^ array[counter - i - 1];
+        array[counter - i - 1] = array[i] ^ array[counter - i - 1];
+        array[i] = array[i] ^ array[counter - i - 1];
+    }
+
+    array[counter] = '\n';
+    counter++;
+
     WriteFile(writeFileNo, array, counter);
+
+    // std::cout << "hisiefja" << std::endl;
     putBusy = TRUE;
     kernel->interrupt->Schedule(this, ConsoleTime, ConsoleWriteInt);
 }
@@ -205,3 +226,5 @@ void ConsoleOutput::PrintInt(int n)
 //     }
 //     return count;
 // }
+
+// =================================above is my code=================================================

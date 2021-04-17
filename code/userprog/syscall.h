@@ -36,7 +36,7 @@
 #define SC_ThreadJoin   15
 #define SC_Add		42
 #define SC_MSG		100
-#define SC_PrintInt 101
+#define SC_PrintInt 101 // =================================this is my code=================================================
 
 #ifndef IN_ASM
 
@@ -50,7 +50,7 @@
  * from the system call entry point in exception.cc.
  */
 
-void PrintInt(int n);
+void PrintInt(int n);// =================================this is my code=================================================
 
 
 /* Stop Nachos, and print out performance stats */

@@ -114,7 +114,7 @@ void SynchConsoleOutput::CallBack()
     waitFor->V();
 }
 
-// My PrintInt
+// =================================below is my code=================================================
 
 void SynchConsoleOutput::PrintInt(int n)
 {
@@ -123,3 +123,5 @@ void SynchConsoleOutput::PrintInt(int n)
     waitFor->P();
     lock->Release();
 }
+
+// =================================above is my code=================================================

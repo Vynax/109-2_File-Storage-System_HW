@@ -331,6 +331,8 @@ C_OFILES = $(LIB_O) $(MACHINE_O) $(THREAD_O) $(USERPROG_O) $(FILESYS_O) $(NETWOR
 S_OFILES = switch.o
 OFILES = $(C_OFILES) $(S_OFILES)
 
+all:clean depend nachos # =================================this is my code=================================================
+
 $(PROGRAM): $(OFILES)
 	$(LD) $(OFILES) $(LDFLAGS) -o $(PROGRAM)
 
