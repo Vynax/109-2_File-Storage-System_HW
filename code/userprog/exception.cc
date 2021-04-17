@@ -59,7 +59,7 @@ void ExceptionHandler(ExceptionType which)
     case SyscallException:
         switch (type)
         {
-    // =================================below is my code=================================================
+        // =================================below is my code=================================================
         case SC_PrintInt:
             val = kernel->machine->ReadRegister(4);
             SysPrintInt(val);
@@ -69,7 +69,70 @@ void ExceptionHandler(ExceptionType which)
             return;
             ASSERTNOTREACHED();
             break;
-    // =================================above is my code=================================================
+
+        case SC_Open:
+            val = kernel->machine->ReadRegister(4);
+            {
+                char *name = &(kernel->machine->mainMemory[val]);
+                int fid = SysOpen(name);
+                kernel->machine->WriteRegister(2, fid);
+            }
+            kernel->machine->WriteRegister(PrevPCReg, kernel->machine->ReadRegister(PCReg));
+            kernel->machine->WriteRegister(PCReg, kernel->machine->ReadRegister(PCReg) + 4);
+            kernel->machine->WriteRegister(NextPCReg, kernel->machine->ReadRegister(PCReg) + 4);
+            return;
+            ASSERTNOTREACHED();
+            break;
+
+        case SC_Read:
+            val = kernel->machine->ReadRegister(4);
+            // std::cout << "before_Read_process" << std::endl;
+            {
+                char *buffer = &(kernel->machine->mainMemory[val]);
+                int size = kernel->machine->ReadRegister(5);
+                OpenFileId id = kernel->machine->ReadRegister(6);
+                int read_success = SysRead(buffer, size, id);
+                kernel->machine->WriteRegister(2, read_success);
+                // std::cout << "in_Read_process" << std::endl;
+            }
+            // std::cout << "after_Read_process" << std::endl;
+            kernel->machine->WriteRegister(PrevPCReg, kernel->machine->ReadRegister(PCReg));
+            kernel->machine->WriteRegister(PCReg, kernel->machine->ReadRegister(PCReg) + 4);
+            kernel->machine->WriteRegister(NextPCReg, kernel->machine->ReadRegister(PCReg) + 4);
+            return;
+            ASSERTNOTREACHED();
+            break;
+
+        case SC_Write:
+            val = kernel->machine->ReadRegister(4);
+            {
+                char *buffer = &(kernel->machine->mainMemory[val]);
+                int size = kernel->machine->ReadRegister(5);
+                OpenFileId id = kernel->machine->ReadRegister(6);
+                int write_success = SysWrite(buffer, size, id);
+                kernel->machine->WriteRegister(2, write_success);
+            }
+            kernel->machine->WriteRegister(PrevPCReg, kernel->machine->ReadRegister(PCReg));
+            kernel->machine->WriteRegister(PCReg, kernel->machine->ReadRegister(PCReg) + 4);
+            kernel->machine->WriteRegister(NextPCReg, kernel->machine->ReadRegister(PCReg) + 4);
+            return;
+            ASSERTNOTREACHED();
+            break;
+
+        case SC_Close:
+            val = kernel->machine->ReadRegister(4);
+            {
+                int close_success = SysClose(val);
+                kernel->machine->WriteRegister(2, close_success);
+            }
+            kernel->machine->WriteRegister(PrevPCReg, kernel->machine->ReadRegister(PCReg));
+            kernel->machine->WriteRegister(PCReg, kernel->machine->ReadRegister(PCReg) + 4);
+            kernel->machine->WriteRegister(NextPCReg, kernel->machine->ReadRegister(PCReg) + 4);
+            return;
+            ASSERTNOTREACHED();
+            break;
+
+        // =================================above is my code=================================================
         case SC_Halt:
             DEBUG(dbgSys, "Shutdown, initiated by user program.\n");
             SysHalt();

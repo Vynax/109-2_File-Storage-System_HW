@@ -34,6 +34,39 @@ int SysCreate(char *filename)
 }
 
 // =================================below is my code=================================================
+
+int SysRead(char *buffer, int size, OpenFileId id)
+{
+    // std::cout << "Read????" << std::endl;
+    OpenFile *file = (OpenFile *)id;
+    return file->Read(buffer, size);
+}
+
+int SysClose(OpenFileId id)
+{
+    OpenFile *file = (OpenFile *)id;
+    try
+    {
+        file->~OpenFile();
+    }
+    catch (std::string e)
+    {
+        throw e;
+    }
+    return 1;
+}
+
+int SysWrite(char *buffer, int size, OpenFileId id)
+{
+    OpenFile *file = (OpenFile *)id;
+    return file->Write(buffer, size);
+}
+
+OpenFileId SysOpen(char *name)
+{
+    return (int)(kernel->fileSystem->Open(name));
+}
+
 void SysPrintInt(int n)
 {
     kernel->synchConsoleOut->PrintInt(n);
