@@ -180,6 +180,8 @@ void ConsoleOutput::PrintInt(int n)
     int counter = 0;
     int switch_times; //if length = 2, array should only switch once
     int temp = 0;     // temporary save digit
+
+    // if n < 0,add '-' to char array
     if (n < 0)
     {
         counter++;
@@ -189,14 +191,16 @@ void ConsoleOutput::PrintInt(int n)
 
     while (n != 0)
     {
-        temp = n % 10;
-        array[counter] = '0' + temp;
-        counter++;
+        temp = n % 10;               // get the last digit of number
+        array[counter] = '0' + temp; // turn digit to character
+        counter++;                   // record how many digits
         n = n / 10;
     }
 
-    switch_times = counter / 2;
+    switch_times = counter / 2; // only need this times to exchange
 
+    // the order is wrong, so we need to exchange from head to tail
+    // use xor to exchange digit
     for (int i = 0; i < switch_times; i++)
     {
         array[i] = array[i] ^ array[counter - i - 1];
