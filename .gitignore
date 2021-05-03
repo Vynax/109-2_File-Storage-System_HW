@@ -2,7 +2,7 @@
 *.ii
 *.coff
 __pycache__/
-code/test/halt
+# code/test/halt
 # code/build.linux/Makefile.dep
-code/build.linux/nachos
+# code/build.linux/nachos
 .vscode/
