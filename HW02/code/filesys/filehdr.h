@@ -19,7 +19,7 @@
 #include "singleindirect.h"
 
 #define SingleIndirectNum 8
-#define NumDirect ((SectorSize - 2 * sizeof(int)) / sizeof(int)) //- SingleIndirectNum
+#define NumDirect ((SectorSize - 2 * sizeof(int)) / sizeof(int)) - SingleIndirectNum
 #define MaxFileSize (NumDirect * SectorSize)
 
 // The following class defines the Nachos "file header" (in UNIX terms,
@@ -83,9 +83,9 @@ private:
     int numSectors;             // Number of data sectors in the file
     int dataSectors[NumDirect]; // Disk sector numbers for each data
                                 // block in the file
-    // int singleIndirectSectors[SingleIndirectNum];
+    int singleIndirectSectors[SingleIndirectNum];
 
-    // SingleIndirect *table;
+    SingleIndirect *table;
 };
 
 #endif // FILEHDR_H

@@ -41,6 +41,7 @@ FileHeader::FileHeader()
     numBytes = -1;
     numSectors = -1;
     memset(dataSectors, -1, sizeof(dataSectors));
+    memset(singleIndirectSectors, -1, sizeof(singleIndirectSectors));
 }
 
 //----------------------------------------------------------------------
@@ -69,8 +70,22 @@ FileHeader::~FileHeader()
 bool FileHeader::Allocate(PersistentBitmap *freeMap, int fileSize)
 {
     numBytes = fileSize;
-    numSectors = divRoundUp(fileSize, SectorSize);
-    if (freeMap->NumClear() < numSectors)
+    int totalSectors;
+    int indirectSectors;
+    totalSectors = divRoundUp(fileSize, SectorSize);
+    if (totalSectors > NumDirect)
+    {
+        numSectors = NumDirect;
+        indirectSectors = totalSectors % NumDirect;
+    }
+    else
+    {
+        numSectors = totalSectors;
+        indirectSectors = 0;
+    }
+
+    int size = SectorSize / sizeof(int); // sectors per singleIndirect
+    if (freeMap->NumClear() < numSectors + indirectSectors + (indirectSectors / size) + !!(indirectSectors % size))
         return FALSE; // not enough space
 
     // if (numSectors <= NumDirect)
@@ -81,6 +96,13 @@ bool FileHeader::Allocate(PersistentBitmap *freeMap, int fileSize)
         // since we checked that there was enough free space,
         // we expect this to succeed
         ASSERT(dataSectors[i] >= 0);
+    }
+
+    for (int i = 0; i < indirectSectors / size + !!(indirectSectors % size); i++)
+    {
+        singleIndirectSectors[i] = freeMap->FindAndSet();
+
+        ASSERT(singleIndirectSectors[i] >= 0);
     }
     // }
     /*else
