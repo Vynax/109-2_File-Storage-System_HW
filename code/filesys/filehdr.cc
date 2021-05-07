@@ -28,6 +28,7 @@
 #include "debug.h"
 #include "synchdisk.h"
 #include "main.h"
+#include "singleindirect.h"
 
 //----------------------------------------------------------------------
 // MP4 mod tag
@@ -41,6 +42,7 @@ FileHeader::FileHeader()
     numBytes = -1;
     numSectors = -1;
     memset(dataSectors, -1, sizeof(dataSectors));
+    memset(singleIndirectSectors, -1, sizeof(singleIndirectSectors));
 }
 
 //----------------------------------------------------------------------
@@ -69,35 +71,58 @@ FileHeader::~FileHeader()
 bool FileHeader::Allocate(PersistentBitmap *freeMap, int fileSize)
 {
     numBytes = fileSize;
+    int numIndirect;
+    int numDirect;
     numSectors = divRoundUp(fileSize, SectorSize);
-    if (freeMap->NumClear() < numSectors)
+    if (numSectors > NumDirect)
+    {
+        numDirect = NumDirect;
+        numIndirect = numSectors - NumDirect;
+    }
+    else
+    {
+        numDirect = numSectors;
+        numIndirect = 0;
+    }
+
+    int size = SectorSize / sizeof(int); // sectors per singleIndirect
+    int numSingleIndirect = numIndirect / size + !!(numIndirect % size);
+    if (freeMap->NumClear() < numDirect + numSingleIndirect + numIndirect)
         return FALSE; // not enough space
 
     // if (numSectors <= NumDirect)
     // {
-    for (int i = 0; i < numSectors; i++)
+    for (int i = 0; i < numDirect; i++)
     {
         dataSectors[i] = freeMap->FindAndSet();
         // since we checked that there was enough free space,
         // we expect this to succeed
         ASSERT(dataSectors[i] >= 0);
     }
-    // }
-    /*else
+
+    if (numIndirect > 0)
     {
-        for (int i = 0; i < NumDirect; i++)
+        // for original inode
+        for (int i = 0; i < numSingleIndirect; i++)
         {
-            dataSectors[i] = freeMap->FindAndSet();
-            // since we checked that there was enough free space,
-            // we expect this to succeed
-            ASSERT(dataSectors[i] >= 0);
+            singleIndirectSectors[i] = freeMap->FindAndSet();
+
+            ASSERT(singleIndirectSectors[i] >= 0);
         }
 
-        for (int i = 0; i < numSectors - NumDirect; i++)
+        // for singleIndirect
+        table = new SingleIndirect[numSingleIndirect];
+        for (int i = 0; i < numSingleIndirect; i++)
         {
-            singleIndirectSectors[i/(SectorSize/sizeof(int))]
+            //table[i] = SingleIndirect();
+            if (numIndirect > size)
+                table[i].Allocate(freeMap, size);
+            else
+                table[i].Allocate(freeMap, numIndirect);
+
+            numIndirect = numIndirect - size;
         }
-    }*/
+    }
     return TRUE;
 }
 
@@ -110,10 +135,32 @@ bool FileHeader::Allocate(PersistentBitmap *freeMap, int fileSize)
 
 void FileHeader::Deallocate(PersistentBitmap *freeMap)
 {
-    for (int i = 0; i < numSectors; i++)
+    //
+    if (numSectors < NumDirect)
     {
-        ASSERT(freeMap->Test((int)dataSectors[i])); // ought to be marked!
-        freeMap->Clear((int)dataSectors[i]);
+        for (int i = 0; i < numSectors; i++)
+        {
+            ASSERT(freeMap->Test((int)dataSectors[i])); // ought to be marked!
+            freeMap->Clear((int)dataSectors[i]);
+        }
+    }
+    else
+    {
+        for (int i = 0; i < NumDirect; i++)
+        {
+            ASSERT(freeMap->Test((int)dataSectors[i])); // ought to be marked!
+            freeMap->Clear((int)dataSectors[i]);
+        }
+
+        int numIndirect = numSectors % NumDirect;
+        int size = SectorSize / sizeof(int); // sectors per singleIndirect
+        int numSingleIndirect = numIndirect / size + !!(numIndirect % size);
+
+        for (int i = 0; i < numSingleIndirect; i++)
+        {
+            table[i].FetchFrom(singleIndirectSectors[i]);
+            table[i].Deallocate(freeMap);
+        }
     }
 }
 
@@ -128,6 +175,18 @@ void FileHeader::FetchFrom(int sector)
 {
     kernel->synchDisk->ReadSector(sector, (char *)this);
 
+    if (numSectors > NumDirect)
+    {
+        int numIndirect = numSectors - NumDirect;
+        int size = SectorSize / sizeof(int); // sectors per singleIndirect
+        int numSingleIndirect = numIndirect / size + !!(numIndirect % size);
+
+        table = new SingleIndirect[numSingleIndirect];
+        for (int i = 0; i < numSingleIndirect; i++)
+        {
+            table[i].FetchFrom(singleIndirectSectors[i]);
+        }
+    }
     /*
 		MP4 Hint:
 		After you add some in-core informations, you will need to rebuild the header's structure
@@ -144,7 +203,18 @@ void FileHeader::FetchFrom(int sector)
 void FileHeader::WriteBack(int sector)
 {
     kernel->synchDisk->WriteSector(sector, (char *)this);
+    // cout << NumDirect << endl;
+    if (numSectors > NumDirect)
+    {
+        int numIndirect = numSectors % NumDirect;
+        int size = SectorSize / sizeof(int); // sectors per singleIndirect
+        int numSingleIndirect = numIndirect / size + !!(numIndirect % size);
 
+        for (int i = 0; i < numSingleIndirect; i++)
+        {
+            table[i].WriteBack(singleIndirectSectors[i]);
+        }
+    }
     /*
 		MP4 Hint:
 		After you add some in-core informations, you may not want to write all fields into disk.
@@ -167,7 +237,15 @@ void FileHeader::WriteBack(int sector)
 
 int FileHeader::ByteToSector(int offset)
 {
-    return (dataSectors[offset / SectorSize]);
+    if (offset / SectorSize < NumDirect)
+        return (dataSectors[offset / SectorSize]);
+    else
+    {
+        // targetSingleIndirectSector
+        int targetSIS = offset / SectorSize - NumDirect;
+
+        return table[targetSIS].ByteToSector(targetSIS * SectorSize + offset % SectorSize);
+    }
 }
 
 //----------------------------------------------------------------------
