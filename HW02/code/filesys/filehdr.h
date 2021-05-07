@@ -19,7 +19,7 @@
 #include "singleindirect.h"
 
 #define SingleIndirectNum 8
-#define NumDirect ((SectorSize - 2 * sizeof(int)) / sizeof(int)) - SingleIndirectNum
+#define NumDirect (((SectorSize - 2 * sizeof(int)) / sizeof(int)) - SingleIndirectNum)
 #define MaxFileSize (NumDirect * SectorSize)
 
 // The following class defines the Nachos "file header" (in UNIX terms,
