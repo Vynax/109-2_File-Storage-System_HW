@@ -5,4 +5,4 @@ __pycache__/
 # code/test/halt
 # code/build.linux/Makefile.dep
 # code/build.linux/nachos
-.vscode/
+# .vscode/

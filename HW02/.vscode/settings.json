@@ -1,0 +1,8 @@
+{
+    "files.associations": {
+        "iostream": "cpp",
+        "syscall.h": "c",
+        "string": "cpp",
+        "array": "cpp"
+    }
+}
