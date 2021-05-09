@@ -5,14 +5,36 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "(gdb) Launch",
+            "name": "HW02 -cp num_1000.txt /1000",
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/code/build.linux/nachos",
             "args": [
                 "-cp",
-                "num_100.txt",
-                "/100"
+                "num_1000.txt",
+                "/1000"
+            ],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/code/test",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "HW02 -p /1000",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/code/build.linux/nachos",
+            "args": [
+                "-p",
+                "/1000"
             ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}/code/test",
