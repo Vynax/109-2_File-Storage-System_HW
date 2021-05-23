@@ -3,6 +3,8 @@
         "iostream": "cpp",
         "syscall.h": "c",
         "string": "cpp",
-        "array": "cpp"
+        "array": "cpp",
+        "*.tcc": "cpp",
+        "functional": "cpp"
     }
 }

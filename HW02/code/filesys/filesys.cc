@@ -146,6 +146,10 @@ FileSystem::FileSystem(bool format)
         freeMapFile = new OpenFile(FreeMapSector);
         directoryFile = new OpenFile(DirectorySector);
     }
+
+    currentDirectoryFile = directoryFile;
+    currentDirectory = new Directory(NumDirEntries);
+    currentDirectory->FetchFrom(currentDirectoryFile);
 }
 
 //----------------------------------------------------------------------
@@ -156,6 +160,10 @@ FileSystem::~FileSystem()
 {
     delete freeMapFile;
     delete directoryFile;
+}
+
+bool FileSystem::Mkdir(char *name)
+{
 }
 
 //----------------------------------------------------------------------
@@ -208,7 +216,7 @@ bool FileSystem::Create(char *name, int initialSize)
         sector = freeMap->FindAndSet(); // find a sector to hold the file header
         if (sector == -1)
             success = FALSE; // no free block for file header
-        else if (!directory->Add(name, sector))
+        else if (!directory->Add(name, sector, FILE_TYPE))
             success = FALSE; // no space in directory
         else
         {

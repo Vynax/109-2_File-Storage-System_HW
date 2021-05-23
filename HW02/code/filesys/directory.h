@@ -66,7 +66,7 @@ public:
     int Find(char *name); // Find the sector number of the
                           // FileHeader for file: "name"
 
-    bool Add(char *name, int newSector); // Add a file name into the directory
+    bool Add(char *name, int newSector, int file_or_dir); // Add a file name into the directory
 
     bool Remove(char *name); // Remove a file from the directory
 
