@@ -47,11 +47,11 @@ def compare(stu_output, answer):
     ans = []
     for line in alph_split:
         if line.rstrip():
-            alph.append(line)
+            alph.append(line.rstrip())
 
     for line in answer_split:
         if line.rstrip():
-            ans.append(line)
+            ans.append(line.rstrip())
 
     alph_split = alph
     answer_split = ans
