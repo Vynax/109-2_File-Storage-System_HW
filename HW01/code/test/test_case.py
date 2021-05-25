@@ -43,6 +43,19 @@ def compare(stu_output, answer):
     alph_split = alphanumeric.split("\n")
     answer_split = answer.split("\n")
 
+    alph = []
+    ans = []
+    for line in alph_split:
+        if line.rstrip():
+            alph.append(line)
+
+    for line in answer_split:
+        if line.rstrip():
+            ans.append(line)
+
+    alph_split = alph
+    answer_split = ans
+
     if (len(alph_split) != len(answer_split)):  # judge false when the lengths are different
         same = False
     else:
