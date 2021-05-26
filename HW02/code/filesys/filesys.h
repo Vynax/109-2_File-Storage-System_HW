@@ -38,6 +38,7 @@
 #include "openfile.h"
 #include "directory.h"
 #include "pbitmap.h"
+#include <vector>
 
 #ifdef FILESYS_STUB // Temporarily implement file system calls as
 // calls to UNIX, until the real file system
@@ -100,6 +101,8 @@ public:
     void recursiveRemove(Directory *dirToDelete, PersistentBitmap *freemap);
 
     void ListRecur(char *path);
+
+    vector<string> path_Parser(char *path);
     //-----------------above is HW02_Part3-------------------------
 
     bool Create(char *name, int initialSize);
@@ -109,7 +112,7 @@ public:
 
     bool Remove(char *name); // Delete a file (UNIX unlink)
 
-    void List(); // List all the files in the file system
+    void List(char *path); // List all the files in the file system
 
     void Print(); // List all the files and their contents
 

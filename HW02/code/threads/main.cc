@@ -152,8 +152,7 @@ void Print(char *name)
 // CreateDirectory
 //      Create a new directory with "name"
 //----------------------------------------------------------------------
-static void
-CreateDirectory(char *name)
+static void CreateDirectory(char *name)
 {
     // MP4 Assignment
     for (int i = 0; name[i] != '\0'; i++)
@@ -161,6 +160,9 @@ CreateDirectory(char *name)
         std::cout << name[i];
     }
     std::cout << std::endl;
+
+    if (!kernel->fileSystem->Mkdir(name))
+        std::cout << "Failed on making directory" << std::endl;
 }
 
 //----------------------------------------------------------------------
@@ -342,10 +344,16 @@ int main(int argc, char **argv)
     {
         kernel->fileSystem->Print();
     }
-    if (dirListFlag)
+
+    if (dirListFlag && recursiveListFlag)
     {
-        kernel->fileSystem->List();
+        kernel->fileSystem->ListRecur(listDirectoryName);
     }
+    else if (dirListFlag)
+    {
+        kernel->fileSystem->List(listDirectoryName);
+    }
+
     if (mkdirFlag)
     {
         // MP4 mod tag

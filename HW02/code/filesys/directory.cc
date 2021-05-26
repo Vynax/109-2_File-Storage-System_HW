@@ -23,6 +23,7 @@
 #include "utility.h"
 #include "filehdr.h"
 #include "directory.h"
+#include "disk.h"
 
 //----------------------------------------------------------------------
 // Directory::Directory
@@ -165,9 +166,10 @@ bool Directory::Remove(char *name)
 // 	List all the file names in the directory.
 //----------------------------------------------------------------------
 
-void Directory::List()
+void Directory::List(bool recursive)
 {
     for (int i = 0; i < tableSize; i++)
+    {
         if (table[i].inUse)
         {
             printf("[%d] %s ", i, table[i].name);
@@ -178,7 +180,24 @@ void Directory::List()
                 printf("D");
 
             printf("\n");
+            if (recursive)
+            {
+                OpenFile *directoryFile = NULL;
+                Directory *directory = NULL;
+                if (table[i].File_or_DIR == DIRECTORY_TYPE)
+                {
+                    directoryFile = new OpenFile(table[i].sector);
+                    directory = new Directory(NumDirEntries);
+                    directory->FetchFrom(directoryFile);
+
+                    directory->List(true);
+
+                    delete directoryFile;
+                    delete directory;
+                }
+            }
         }
+    }
 }
 
 //----------------------------------------------------------------------
