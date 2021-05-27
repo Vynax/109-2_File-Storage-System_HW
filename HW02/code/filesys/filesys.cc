@@ -269,9 +269,15 @@ bool FileSystem::Mkdir(char *name)
 
     DEBUG(dbgFile, "Creating Directory " << name);
 
-    if (!changeCurrenDir(name, false))
+    if (path_name.size() <= 0)
+    {
+        std::cout << "root donen't need to be made" << std::endl;
+        return false;
+    }
+    else if (!changeCurrenDir(name, false))
     {
         std::cout << "Failed on changing current directory" << std::endl;
+        closeCurrentDir();
         return false;
     }
 
@@ -361,7 +367,7 @@ bool FileSystem::Mkdir(char *name)
 
 bool FileSystem::Create(char *name, int initialSize)
 {
-    Directory *directory;
+    vector<string> path_name = path_Parser(name);
     PersistentBitmap *freeMap;
     FileHeader *hdr;
     int sector;
@@ -369,18 +375,33 @@ bool FileSystem::Create(char *name, int initialSize)
 
     DEBUG(dbgFile, "Creating file " << name << " size " << initialSize);
 
-    directory = new Directory(NumDirEntries);
-    directory->FetchFrom(directoryFile);
+    if (path_name.size() <= 0)
+    {
+        std::cout << "root donen't need to be made" << std::endl;
+        return false;
+    }
+    else if (!changeCurrenDir(name, false))
+    {
+        std::cout << "Failed on changing current directory" << std::endl;
+        closeCurrentDir();
+        return false;
+    }
 
-    if (directory->Find(name) != -1)
-        success = FALSE; // file is already in directory
+    char *temp_c_str = new char[path_name[path_name.size() - 1].length() + 1];
+    strcpy(temp_c_str, path_name[path_name.size() - 1].c_str());
+
+    if (currentDirectory->Find(temp_c_str) != -1) // file is already in directory
+    {
+        std::cout << "File is already in directory :" << name << std::endl;
+        success = FALSE;
+    }
     else
     {
         freeMap = new PersistentBitmap(freeMapFile, NumSectors);
         sector = freeMap->FindAndSet(); // find a sector to hold the file header
         if (sector == -1)
             success = FALSE; // no free block for file header
-        else if (!directory->Add(name, sector, FILE_TYPE))
+        else if (!currentDirectory->Add(temp_c_str, sector, FILE_TYPE))
             success = FALSE; // no space in directory
         else
         {
@@ -392,14 +413,13 @@ bool FileSystem::Create(char *name, int initialSize)
                 success = TRUE;
                 // everthing worked, flush all changes back to disk
                 hdr->WriteBack(sector);
-                directory->WriteBack(directoryFile);
+                currentDirectory->WriteBack(currentDirectoryFile);
                 freeMap->WriteBack(freeMapFile);
             }
             delete hdr;
         }
         delete freeMap;
     }
-    delete directory;
     return success;
 }
 
@@ -413,19 +433,23 @@ bool FileSystem::Create(char *name, int initialSize)
 //	"name" -- the text name of the file to be opened
 //----------------------------------------------------------------------
 
-OpenFile *
-FileSystem::Open(char *name)
+OpenFile *FileSystem::Open(char *name)
 {
-    Directory *directory = new Directory(NumDirEntries);
+    vector<string> path_name = path_Parser(name);
     OpenFile *openFile = NULL;
     int sector;
 
+    changeCurrenDir(name, false);
+
+    char *temp_c_str = new char[path_name[path_name.size() - 1].length() + 1];
+    strcpy(temp_c_str, path_name[path_name.size() - 1].c_str());
+
     DEBUG(dbgFile, "Opening file" << name);
-    directory->FetchFrom(directoryFile);
-    sector = directory->Find(name);
+    sector = currentDirectory->Find(temp_c_str);
     if (sector >= 0)
         openFile = new OpenFile(sector); // name was found in directory
-    delete directory;
+
+    delete temp_c_str;
     return openFile; // return NULL if not found
 }
 
