@@ -196,13 +196,16 @@ vector<string> FileSystem::path_Parser(char *name)
     return path_name;
 }
 
-bool FileSystem::changeCurrenDir(char *name)
+bool FileSystem::changeCurrenDir(char *name, bool lastname)
 {
     vector<string> path_name = path_Parser(name);
-    PersistentBitmap *freeMap;
     int sector;
     bool success = true;
-
+    int limit;
+    if (lastname) // need the last name of path
+        limit = path_name.size();
+    else // doesn't need the last name of path
+        limit = path_name.size() - 1;
     DEBUG(dbgFile, "Changing Current Directory " << name);
 
     if (name[0] == '/')
@@ -210,33 +213,30 @@ bool FileSystem::changeCurrenDir(char *name)
         //OpenFile &tempDirectoryFile = *currentDirectoryFile; // save pointer
         currentDirectoryFile = directoryFile;
         currentDirectory->FetchFrom(currentDirectoryFile);
-        for (int i = 0; i < path_name.size() && success == true; i++)
+        for (int i = 0; i < limit && success == true; i++)
         {
             char *temp_c_str = new char[path_name[i].length() + 1];
             strcpy(temp_c_str, path_name[i].c_str());
-            if (i != path_name.size() - 1) // not the last name of path
+            sector = currentDirectory->Find(temp_c_str);
+            if (sector == -1) // can't find the path
             {
-                sector = currentDirectory->Find(temp_c_str);
-                if (sector == -1) // can't find the path
-                {
-                    std::cout << "No such Directory :";
-                    for (int j = 0; j <= i; j++)
-                        std::cout << "/" << path_name[j];
+                std::cout << "No such Directory :";
+                for (int j = 0; j <= i; j++)
+                    std::cout << "/" << path_name[j];
 
-                    std::cout << std::endl;
-                    success = false;
-                }
-                else
+                std::cout << std::endl;
+                success = false;
+            }
+            else
+            {
+                if (currentDirectoryFile != directoryFile)
                 {
-                    if (currentDirectoryFile != directoryFile)
-                    {
-                        delete currentDirectoryFile;
-                        delete currentDirectory;
-                    }
-                    currentDirectoryFile = new OpenFile(sector);
-                    currentDirectory = new Directory(NumDirEntries);
-                    currentDirectory->FetchFrom(currentDirectoryFile);
+                    delete currentDirectoryFile;
+                    delete currentDirectory;
                 }
+                currentDirectoryFile = new OpenFile(sector);
+                currentDirectory = new Directory(NumDirEntries);
+                currentDirectory->FetchFrom(currentDirectoryFile);
             }
         }
     }
@@ -246,6 +246,15 @@ bool FileSystem::changeCurrenDir(char *name)
 
 void FileSystem::closeCurrentDir()
 {
+    if (currentDirectoryFile != directoryFile)
+    {
+        delete currentDirectoryFile;
+        delete currentDirectory;
+
+        currentDirectoryFile = directoryFile;
+        currentDirectory = new Directory(NumDirEntries);
+        currentDirectory->FetchFrom(currentDirectoryFile);
+    }
 }
 
 bool FileSystem::Mkdir(char *name)
@@ -260,7 +269,7 @@ bool FileSystem::Mkdir(char *name)
 
     DEBUG(dbgFile, "Creating Directory " << name);
 
-    if (!changeCurrenDir(name))
+    if (!changeCurrenDir(name, false))
     {
         std::cout << "Failed on changing current directory" << std::endl;
         return false;
@@ -317,16 +326,7 @@ bool FileSystem::Mkdir(char *name)
 
     delete[] temp_c_str;
 
-    if (currentDirectoryFile != directoryFile)
-    {
-        delete currentDirectoryFile;
-        delete currentDirectory;
-
-        currentDirectoryFile = directoryFile;
-        currentDirectory = new Directory(NumDirEntries);
-        currentDirectory->FetchFrom(currentDirectoryFile);
-    }
-
+    closeCurrentDir();
     return success;
 }
 
@@ -482,11 +482,10 @@ bool FileSystem::Remove(char *name)
 
 void FileSystem::List(char *path)
 {
-    Directory *directory = new Directory(NumDirEntries);
+    changeCurrenDir(path, true);
+    currentDirectory->List(false);
 
-    directory->FetchFrom(directoryFile);
-    directory->List(false);
-    delete directory;
+    closeCurrentDir();
 }
 
 void FileSystem::ListRecur(char *path)

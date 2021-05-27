@@ -19,8 +19,8 @@
 
 #include "openfile.h"
 
-#define FileNameMaxLen 9 // for simplicity, we assume \
-                         // file names are <= 9 characters long
+#define FileNameMaxLen 9 /* for simplicity, we assume \
+                         // file names are <= 9 characters long*/
 #define FILE_TYPE 1
 #define DIRECTORY_TYPE 2
 

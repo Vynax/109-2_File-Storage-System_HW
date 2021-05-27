@@ -90,7 +90,7 @@ public:
     ~FileSystem();
 
     //-----------------below is HW02_Part3-------------------------
-    bool changeCurrenDir(char *name);
+    bool changeCurrenDir(char *name, bool lastname); // mkdir() and create() doesn't need last name, but list() need
 
     void closeCurrentDir();
 

@@ -155,11 +155,13 @@ void Print(char *name)
 static void CreateDirectory(char *name)
 {
     // MP4 Assignment
-    for (int i = 0; name[i] != '\0'; i++)
+
+    // to test what is the last char in array
+    /*for (int i = 0; name[i] != '\0'; i++)
     {
         std::cout << name[i];
     }
-    std::cout << std::endl;
+    std::cout << std::endl;*/
 
     if (!kernel->fileSystem->Mkdir(name))
         std::cout << "Failed on making directory" << std::endl;
