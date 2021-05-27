@@ -100,28 +100,26 @@ bool FileHeader::Allocate(PersistentBitmap *freeMap, int fileSize)
         ASSERT(dataSectors[i] >= 0);
     }
 
-    if (numIndirect > 0)
+    // for original inode
+    for (int i = 0; i < numSingleIndirect; i++)
     {
-        // for original inode
-        for (int i = 0; i < numSingleIndirect; i++)
-        {
-            singleIndirectSectors[i] = freeMap->FindAndSet();
+        singleIndirectSectors[i] = freeMap->FindAndSet();
 
-            ASSERT(singleIndirectSectors[i] >= 0);
-        }
+        ASSERT(singleIndirectSectors[i] >= 0);
+    }
 
-        // for singleIndirect
+    // for singleIndirect
+    if (numSingleIndirect)
         table = new SingleIndirect[numSingleIndirect];
-        for (int i = 0; i < numSingleIndirect; i++)
-        {
-            //table[i] = SingleIndirect();
-            if (numIndirect > size)
-                table[i].Allocate(freeMap, size);
-            else
-                table[i].Allocate(freeMap, numIndirect);
+    for (int i = 0; i < numSingleIndirect; i++)
+    {
+        //table[i] = SingleIndirect();
+        if (numIndirect > size)
+            table[i].Allocate(freeMap, size);
+        else
+            table[i].Allocate(freeMap, numIndirect);
 
-            numIndirect = numIndirect - size;
-        }
+        numIndirect = numIndirect - size;
     }
     return TRUE;
 }
@@ -136,7 +134,7 @@ bool FileHeader::Allocate(PersistentBitmap *freeMap, int fileSize)
 void FileHeader::Deallocate(PersistentBitmap *freeMap)
 {
     //
-    if (numSectors < NumDirect)
+    if (numSectors <= NumDirect)
     {
         for (int i = 0; i < numSectors; i++)
         {
@@ -158,7 +156,6 @@ void FileHeader::Deallocate(PersistentBitmap *freeMap)
 
         for (int i = 0; i < numSingleIndirect; i++)
         {
-            table[i].FetchFrom(singleIndirectSectors[i]);
             table[i].Deallocate(freeMap);
         }
     }
@@ -206,7 +203,7 @@ void FileHeader::WriteBack(int sector)
     // cout << NumDirect << endl;
     if (numSectors > NumDirect)
     {
-        int numIndirect = numSectors % NumDirect;
+        int numIndirect = numSectors - NumDirect;
         int size = SectorSize / sizeof(int); // sectors per singleIndirect
         int numSingleIndirect = numIndirect / size + !!(numIndirect % size);
 
@@ -244,7 +241,7 @@ int FileHeader::ByteToSector(int offset)
         // targetSingleIndirectSector
         int targetSIS = offset / SectorSize - NumDirect;
 
-        return table[targetSIS].ByteToSector(targetSIS * SectorSize + offset % SectorSize);
+        return table[targetSIS / 32].ByteToSector(targetSIS % 32 * SectorSize);
     }
 }
 

@@ -19,8 +19,8 @@
 
 #include "openfile.h"
 
-#define FileNameMaxLen 9 // for simplicity, we assume \
-                         // file names are <= 9 characters long
+#define FileNameMaxLen 9 /* for simplicity, we assume \
+                         // file names are <= 9 characters long*/
 #define FILE_TYPE 1
 #define DIRECTORY_TYPE 2
 
@@ -66,15 +66,15 @@ public:
     int Find(char *name); // Find the sector number of the
                           // FileHeader for file: "name"
 
-    bool Add(char *name, int newSector); // Add a file name into the directory
+    bool Add(char *name, int newSector, int file_or_dir); // Add a file name into the directory
 
     bool Remove(char *name); // Remove a file from the directory
 
-    void List();  // Print the names of all the files
-                  //  in the directory
-    void Print(); // Verbose print of the contents
-                  //  of the directory -- all the file
-                  //  names and their contents.
+    void List(bool recursive); // Print the names of all the files
+                               //  in the directory
+    void Print();              // Verbose print of the contents
+                               //  of the directory -- all the file
+                               //  names and their contents.
 
 private:
     /*

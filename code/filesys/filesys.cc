@@ -51,6 +51,7 @@
 #include "directory.h"
 #include "filehdr.h"
 #include "filesys.h"
+#include <vector>
 
 // Sectors containing the file headers for the bitmap of free sectors,
 // and the directory of files.  These file headers are placed in well-known
@@ -62,7 +63,6 @@
 // supports extensible files, the directory size sets the maximum number
 // of files that can be loaded onto the disk.
 #define FreeMapFileSize (NumSectors / BitsInByte)
-#define NumDirEntries 64
 #define DirectoryFileSize (sizeof(DirectoryEntry) * NumDirEntries)
 
 //----------------------------------------------------------------------
@@ -146,6 +146,10 @@ FileSystem::FileSystem(bool format)
         freeMapFile = new OpenFile(FreeMapSector);
         directoryFile = new OpenFile(DirectorySector);
     }
+
+    currentDirectoryFile = directoryFile;
+    currentDirectory = new Directory(NumDirEntries);
+    currentDirectory->FetchFrom(currentDirectoryFile);
 }
 
 //----------------------------------------------------------------------
@@ -155,7 +159,181 @@ FileSystem::FileSystem(bool format)
 FileSystem::~FileSystem()
 {
     delete freeMapFile;
-    delete directoryFile;
+    if (directoryFile == currentDirectoryFile)
+        delete directoryFile;
+    else
+    {
+        delete directoryFile;
+        delete currentDirectoryFile;
+    }
+    delete currentDirectory;
+}
+
+vector<string> FileSystem::path_Parser(char *name)
+{
+    int i = 0;
+    int slash_count = 0;
+    string temp = "";
+    vector<string> path_name;
+    while (name[i] != '\0')
+    {
+        if (name[i] == '/')
+        {
+            if (slash_count != 0) // if slash_count = 0 , that means it's first '/'
+            {
+                path_name.push_back(temp);
+                temp = "";
+            }
+            slash_count++;
+        }
+        else
+            temp += name[i];
+        i++;
+    }
+
+    if (temp != "")
+        path_name.push_back(temp);
+    return path_name;
+}
+
+bool FileSystem::changeCurrenDir(char *name, bool lastname)
+{
+    vector<string> path_name = path_Parser(name);
+    int sector;
+    bool success = true;
+    int limit;
+    if (lastname) // need the last name of path
+        limit = path_name.size();
+    else // doesn't need the last name of path
+        limit = path_name.size() - 1;
+    DEBUG(dbgFile, "Changing Current Directory " << name);
+
+    if (name[0] == '/')
+    {
+        //OpenFile &tempDirectoryFile = *currentDirectoryFile; // save pointer
+        currentDirectoryFile = directoryFile;
+        currentDirectory->FetchFrom(currentDirectoryFile);
+        for (int i = 0; i < limit && success == true; i++)
+        {
+            char *temp_c_str = new char[path_name[i].length() + 1];
+            strcpy(temp_c_str, path_name[i].c_str());
+            sector = currentDirectory->Find(temp_c_str);
+            if (sector == -1) // can't find the path
+            {
+                std::cout << "No such Directory :";
+                for (int j = 0; j <= i; j++)
+                    std::cout << "/" << path_name[j];
+
+                std::cout << std::endl;
+                success = false;
+            }
+            else
+            {
+                if (currentDirectoryFile != directoryFile)
+                {
+                    delete currentDirectoryFile;
+                    delete currentDirectory;
+                }
+                currentDirectoryFile = new OpenFile(sector);
+                currentDirectory = new Directory(NumDirEntries);
+                currentDirectory->FetchFrom(currentDirectoryFile);
+            }
+        }
+    }
+
+    return success;
+}
+
+void FileSystem::closeCurrentDir()
+{
+    if (currentDirectoryFile != directoryFile)
+    {
+        delete currentDirectoryFile;
+        delete currentDirectory;
+
+        currentDirectoryFile = directoryFile;
+        currentDirectory = new Directory(NumDirEntries);
+        currentDirectory->FetchFrom(currentDirectoryFile);
+    }
+}
+
+bool FileSystem::Mkdir(char *name)
+{
+    vector<string> path_name = path_Parser(name);
+    Directory *newDirectory;
+    OpenFile *newDirectoryFile;
+    PersistentBitmap *freeMap;
+    FileHeader *hdr;
+    int sector;
+    bool success = true;
+
+    DEBUG(dbgFile, "Creating Directory " << name);
+
+    if (path_name.size() <= 0)
+    {
+        std::cout << "root donen't need to be made" << std::endl;
+        return false;
+    }
+    else if (!changeCurrenDir(name, false))
+    {
+        std::cout << "Failed on changing current directory" << std::endl;
+        closeCurrentDir();
+        return false;
+    }
+
+    char *temp_c_str = new char[path_name[path_name.size() - 1].length() + 1];
+    strcpy(temp_c_str, path_name[path_name.size() - 1].c_str());
+    if (currentDirectory->Find(temp_c_str) != -1) //folder already exist
+    {
+        std::cout << "Directory already existed :" << name << std::endl;
+        success = false;
+    }
+    else
+    {
+        freeMap = new PersistentBitmap(freeMapFile, NumSectors);
+        sector = freeMap->FindAndSet(); // find a sector to hold the file header
+        if (sector == -1)
+        {
+            success = FALSE; // no free block for file header
+            std::cout << "no free block for file header" << std::endl;
+        }
+        else if (!currentDirectory->Add(temp_c_str, sector, DIRECTORY_TYPE))
+        {
+            success = FALSE; // no space in directory
+            std::cout << "no space in directory" << std::endl;
+        }
+        else
+        {
+            hdr = new FileHeader;
+            if (!hdr->Allocate(freeMap, DirectoryFileSize))
+            {
+                success = FALSE; // no space on disk for data
+                std::cout << "no space on disk for data" << std::endl;
+            }
+            else
+            {
+                success = TRUE;
+                // everthing worked, flush all changes back to disk
+                hdr->WriteBack(sector);
+                currentDirectory->WriteBack(currentDirectoryFile);
+                freeMap->WriteBack(freeMapFile);
+
+                newDirectoryFile = new OpenFile(sector);
+                newDirectory = new Directory(NumDirEntries);
+                newDirectory->WriteBack(newDirectoryFile);
+
+                delete newDirectory;
+                delete newDirectoryFile;
+            }
+            delete hdr;
+        }
+        delete freeMap;
+    }
+
+    delete[] temp_c_str;
+
+    closeCurrentDir();
+    return success;
 }
 
 //----------------------------------------------------------------------
@@ -189,7 +367,7 @@ FileSystem::~FileSystem()
 
 bool FileSystem::Create(char *name, int initialSize)
 {
-    Directory *directory;
+    vector<string> path_name = path_Parser(name);
     PersistentBitmap *freeMap;
     FileHeader *hdr;
     int sector;
@@ -197,18 +375,33 @@ bool FileSystem::Create(char *name, int initialSize)
 
     DEBUG(dbgFile, "Creating file " << name << " size " << initialSize);
 
-    directory = new Directory(NumDirEntries);
-    directory->FetchFrom(directoryFile);
+    if (path_name.size() <= 0)
+    {
+        std::cout << "root donen't need to be made" << std::endl;
+        return false;
+    }
+    else if (!changeCurrenDir(name, false))
+    {
+        std::cout << "Failed on changing current directory" << std::endl;
+        closeCurrentDir();
+        return false;
+    }
 
-    if (directory->Find(name) != -1)
-        success = FALSE; // file is already in directory
+    char *temp_c_str = new char[path_name[path_name.size() - 1].length() + 1];
+    strcpy(temp_c_str, path_name[path_name.size() - 1].c_str());
+
+    if (currentDirectory->Find(temp_c_str) != -1) // file is already in directory
+    {
+        std::cout << "File is already in directory :" << name << std::endl;
+        success = FALSE;
+    }
     else
     {
         freeMap = new PersistentBitmap(freeMapFile, NumSectors);
         sector = freeMap->FindAndSet(); // find a sector to hold the file header
         if (sector == -1)
             success = FALSE; // no free block for file header
-        else if (!directory->Add(name, sector))
+        else if (!currentDirectory->Add(temp_c_str, sector, FILE_TYPE))
             success = FALSE; // no space in directory
         else
         {
@@ -220,14 +413,13 @@ bool FileSystem::Create(char *name, int initialSize)
                 success = TRUE;
                 // everthing worked, flush all changes back to disk
                 hdr->WriteBack(sector);
-                directory->WriteBack(directoryFile);
+                currentDirectory->WriteBack(currentDirectoryFile);
                 freeMap->WriteBack(freeMapFile);
             }
             delete hdr;
         }
         delete freeMap;
     }
-    delete directory;
     return success;
 }
 
@@ -241,19 +433,23 @@ bool FileSystem::Create(char *name, int initialSize)
 //	"name" -- the text name of the file to be opened
 //----------------------------------------------------------------------
 
-OpenFile *
-FileSystem::Open(char *name)
+OpenFile *FileSystem::Open(char *name)
 {
-    Directory *directory = new Directory(NumDirEntries);
+    vector<string> path_name = path_Parser(name);
     OpenFile *openFile = NULL;
     int sector;
 
+    changeCurrenDir(name, false);
+
+    char *temp_c_str = new char[path_name[path_name.size() - 1].length() + 1];
+    strcpy(temp_c_str, path_name[path_name.size() - 1].c_str());
+
     DEBUG(dbgFile, "Opening file" << name);
-    directory->FetchFrom(directoryFile);
-    sector = directory->Find(name);
+    sector = currentDirectory->Find(temp_c_str);
     if (sector >= 0)
         openFile = new OpenFile(sector); // name was found in directory
-    delete directory;
+
+    delete temp_c_str;
     return openFile; // return NULL if not found
 }
 
@@ -308,12 +504,20 @@ bool FileSystem::Remove(char *name)
 // 	List all the files in the file system directory.
 //----------------------------------------------------------------------
 
-void FileSystem::List()
+void FileSystem::List(char *path)
+{
+    changeCurrenDir(path, true);
+    currentDirectory->List(false);
+
+    closeCurrentDir();
+}
+
+void FileSystem::ListRecur(char *path)
 {
     Directory *directory = new Directory(NumDirEntries);
 
     directory->FetchFrom(directoryFile);
-    directory->List();
+    directory->List(true);
     delete directory;
 }
 

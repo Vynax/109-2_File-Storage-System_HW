@@ -5,6 +5,17 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "Python: Current File",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "args": [
+                "test_case.json"
+            ],
+            "cwd": "${workspaceFolder}/code/test2",
+            "console": "integratedTerminal"
+        },
+        {
             "name": "nachos -mkdir /t0/aa",
             "type": "cppdbg",
             "request": "launch",

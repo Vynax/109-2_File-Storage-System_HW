@@ -214,6 +214,7 @@ RM = /bin/rm
 
 INCPATH = -I../network -I../filesys -I../userprog -I../threads -I../machine -I../lib -I-
 
+all: clean depend nachos
 PROGRAM = nachos
 
 #
