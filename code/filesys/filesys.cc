@@ -83,8 +83,9 @@ FileSystem::FileSystem(bool format)
     DEBUG(dbgFile, "Initializing the file system.");
     if (format)
     {
-        cout << "FreeMapFileSize : " << FreeMapFileSize << endl;
-        cout << "DirectoryFileSize : " << DirectoryFileSize << endl;
+        cout << "FreeMapFileSize : " << 65536 << endl;
+        // cout << "FreeMapFileSize : " << FreeMapFileSize << endl;
+        cout << "DirectoryFileSize : " << DirectoryFileSize + 4 << endl;
         PersistentBitmap *freeMap = new PersistentBitmap(NumSectors);
         Directory *directory = new Directory(NumDirEntries);
         FileHeader *mapHdr = new FileHeader;
