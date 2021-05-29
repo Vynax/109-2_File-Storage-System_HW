@@ -83,13 +83,13 @@
             ]
         },
         {
-            "name": "nachos -l",
+            "name": "nachos -r /t30000/num_12000",
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/code/build.linux/nachos",
             "args": [
-                "-l",
-                "/"
+                "-r",
+                "/t30000/num_12000"
             ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}/code/test",

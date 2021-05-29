@@ -180,12 +180,21 @@ void Directory::List(bool recursive)
                 printf("D");
 
             printf("\n");
-            if (recursive)
+        }
+    }
+
+    if (recursive)
+    {
+        for (int i = 0; i < tableSize; i++)
+        {
+            if (table[i].inUse)
             {
                 OpenFile *directoryFile = NULL;
                 Directory *directory = NULL;
                 if (table[i].File_or_DIR == DIRECTORY_TYPE)
                 {
+                    std::cout << "=======================================" << std::endl;
+                    std::cout << "Dir " << table[i].name << std::endl;
                     directoryFile = new OpenFile(table[i].sector);
                     directory = new Directory(NumDirEntries);
                     directory->FetchFrom(directoryFile);
