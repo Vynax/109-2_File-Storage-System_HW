@@ -158,6 +158,15 @@ bool Directory::Remove(char *name)
     if (i == -1)
         return FALSE; // name not in directory
     table[i].inUse = FALSE;
+
+    printf("[%d] %s ", 0, table[i].name);
+
+    if (table[i].File_or_DIR == FILE_TYPE)
+        printf("F");
+    else if (table[i].File_or_DIR == DIRECTORY_TYPE)
+        printf("D");
+
+    printf("\n");
     return TRUE;
 }
 
