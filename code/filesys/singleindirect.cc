@@ -41,8 +41,8 @@ void SingleIndirect::FetchFrom(int sector)
     // int i = 0;
     int size = SectorSize / sizeof(int); // sectors per singleIndirect
     numSectors = 0;
-    while ((dataSectors[numSectors++] != -1) && numSectors < size)
-        ;
+    while ((dataSectors[numSectors] != -1) && numSectors < size)
+        numSectors++;
 }
 
 void SingleIndirect::WriteBack(int sector)

@@ -63,7 +63,7 @@ void DoubleIndirect::FetchFrom(int sector)
     SISize = SectorSize / sizeof(int); // sectors per SingleIndirect
 
     numSingleIndirect = 0;
-    while ((SISectors[numSingleIndirect] > -1) && SISectors[numSingleIndirect] < NumSectors && numSingleIndirect < SISize)
+    while ((SISectors[numSingleIndirect] > -1) && SISectors[numSingleIndirect] < NumSectors && numSingleIndirect < 32)
     {
         numSingleIndirect++;
     }

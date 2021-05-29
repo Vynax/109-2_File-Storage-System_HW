@@ -506,7 +506,7 @@ bool FileSystem::Remove(char *name)
 
     fileHdr->Deallocate(freeMap); // remove data blocks
     freeMap->Clear(sector);       // remove header block
-    currentDirectory->Remove(name);
+    currentDirectory->Remove(temp_c_str);
 
     freeMap->WriteBack(freeMapFile);                   // flush to disk
     currentDirectory->WriteBack(currentDirectoryFile); // flush to disk
