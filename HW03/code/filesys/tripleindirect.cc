@@ -63,7 +63,7 @@ void TripleIndirect::FetchFrom(int sector)
     DISize = pow(SectorSize / sizeof(int), 2); // sectors per SingleIndirect
 
     numDoubleIndirect = 0;
-    while ((DISectors[numDoubleIndirect] > -1) && DISectors[numDoubleIndirect] < NumSectors && numDoubleIndirect < DISize)
+    while ((DISectors[numDoubleIndirect] > -1) && DISectors[numDoubleIndirect] < NumSectors && numDoubleIndirect < 32)
     {
         numDoubleIndirect++;
     }
