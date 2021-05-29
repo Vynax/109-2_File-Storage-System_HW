@@ -144,12 +144,6 @@ void FileHeader::Deallocate(PersistentBitmap *freeMap)
     }
     else
     {
-        for (int i = 0; i < NumDirect; i++)
-        {
-            ASSERT(freeMap->Test((int)dataSectors[i])); // ought to be marked!
-            freeMap->Clear((int)dataSectors[i]);
-        }
-
         numIndirect = numSectors - NumDirect;
         size = pow(SectorSize / sizeof(int), 3); // sectors per TripleIndirect
         numTripleIndirect = numIndirect / size + !!(numIndirect % size);
@@ -157,6 +151,12 @@ void FileHeader::Deallocate(PersistentBitmap *freeMap)
         for (int i = 0; i < numTripleIndirect; i++)
         {
             table[i].Deallocate(freeMap);
+        }
+
+        for (int i = 0; i < NumDirect; i++)
+        {
+            ASSERT(freeMap->Test((int)dataSectors[i])); // ought to be marked!
+            freeMap->Clear((int)dataSectors[i]);
         }
     }
 }

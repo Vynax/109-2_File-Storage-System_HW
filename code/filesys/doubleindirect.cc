@@ -50,9 +50,9 @@ void DoubleIndirect::Deallocate(PersistentBitmap *freeMap)
 {
     for (int i = 0; i < numSingleIndirect; i++)
     {
+        table[i].Deallocate(freeMap);
         ASSERT(freeMap->Test((int)SISectors[i])); // ought to be marked!
         freeMap->Clear((int)SISectors[i]);
-        table[i].Deallocate(freeMap);
     }
 }
 

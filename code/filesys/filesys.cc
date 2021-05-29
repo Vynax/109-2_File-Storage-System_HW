@@ -470,17 +470,33 @@ OpenFile *FileSystem::Open(char *name)
 
 bool FileSystem::Remove(char *name)
 {
-    Directory *directory;
+    vector<string> path_name = path_Parser(name);
     PersistentBitmap *freeMap;
     FileHeader *fileHdr;
     int sector;
+    int index_dir;
 
-    directory = new Directory(NumDirEntries);
-    directory->FetchFrom(directoryFile);
-    sector = directory->Find(name);
+    DEBUG(dbgFile, "Removing File : " << name);
+
+    if (path_name.size() <= 0)
+    {
+        std::cout << "root donen't need to be removed" << std::endl;
+        return false;
+    }
+    else if (!changeCurrenDir(name, false))
+    {
+        std::cout << "Failed on changing current directory" << std::endl;
+        closeCurrentDir();
+        return false;
+    }
+
+    char *temp_c_str = new char[path_name[path_name.size() - 1].length() + 1];
+    strcpy(temp_c_str, path_name[path_name.size() - 1].c_str());
+
+    sector = currentDirectory->Find(temp_c_str);
     if (sector == -1)
     {
-        delete directory;
+        closeCurrentDir();
         return FALSE; // file not found
     }
     fileHdr = new FileHeader;
@@ -490,13 +506,13 @@ bool FileSystem::Remove(char *name)
 
     fileHdr->Deallocate(freeMap); // remove data blocks
     freeMap->Clear(sector);       // remove header block
-    directory->Remove(name);
+    currentDirectory->Remove(name);
 
-    freeMap->WriteBack(freeMapFile);     // flush to disk
-    directory->WriteBack(directoryFile); // flush to disk
+    freeMap->WriteBack(freeMapFile);                   // flush to disk
+    currentDirectory->WriteBack(currentDirectoryFile); // flush to disk
     delete fileHdr;
-    delete directory;
     delete freeMap;
+    closeCurrentDir();
     return TRUE;
 }
 
