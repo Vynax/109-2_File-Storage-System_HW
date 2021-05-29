@@ -295,13 +295,15 @@ USERPROG_C = ../userprog/addrspace.cc\
 
 USERPROG_O = addrspace.o exception.o synchconsole.o
 
-FILESYS_H =../filesys/directory.h \
+FILESYS_H = ../filesys/directory.h\
 	../filesys/filehdr.h\
-	../filesys/filesys.h \
+	../filesys/filesys.h\
 	../filesys/openfile.h\
 	../filesys/pbitmap.h\
 	../filesys/synchdisk.h\
 	../filesys/singleindirect.h\
+	../filesys/doubleindirect.h\
+	../filesys/tripleindirect.h\
 
 FILESYS_C =../filesys/directory.cc\
 	../filesys/filehdr.cc\
@@ -310,8 +312,10 @@ FILESYS_C =../filesys/directory.cc\
 	../filesys/openfile.cc\
 	../filesys/synchdisk.cc\
 	../filesys/singleindirect.cc\
+	../filesys/doubleindirect.cc\
+	../filesys/tripleindirect.cc\
 
-FILESYS_O =directory.o filehdr.o filesys.o pbitmap.o openfile.o synchdisk.o singleindirect.o
+FILESYS_O = directory.o filehdr.o filesys.o pbitmap.o openfile.o synchdisk.o singleindirect.o doubleindirect.o tripleindirect.o
 
 NETWORK_H = ../network/post.h
 

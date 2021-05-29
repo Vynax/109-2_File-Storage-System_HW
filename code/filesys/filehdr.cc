@@ -29,6 +29,7 @@
 #include "synchdisk.h"
 #include "main.h"
 #include "singleindirect.h"
+#include <cmath>
 
 //----------------------------------------------------------------------
 // MP4 mod tag
@@ -42,7 +43,7 @@ FileHeader::FileHeader()
     numBytes = -1;
     numSectors = -1;
     memset(dataSectors, -1, sizeof(dataSectors));
-    memset(singleIndirectSectors, -1, sizeof(singleIndirectSectors));
+    memset(tripleIndirectSectors, -1, sizeof(tripleIndirectSectors));
 }
 
 //----------------------------------------------------------------------
@@ -71,7 +72,6 @@ FileHeader::~FileHeader()
 bool FileHeader::Allocate(PersistentBitmap *freeMap, int fileSize)
 {
     numBytes = fileSize;
-    int numIndirect;
     int numDirect;
     numSectors = divRoundUp(fileSize, SectorSize);
     if (numSectors > NumDirect)
@@ -85,9 +85,9 @@ bool FileHeader::Allocate(PersistentBitmap *freeMap, int fileSize)
         numIndirect = 0;
     }
 
-    int size = SectorSize / sizeof(int); // sectors per singleIndirect
-    int numSingleIndirect = numIndirect / size + !!(numIndirect % size);
-    if (freeMap->NumClear() < numDirect + numSingleIndirect + numIndirect)
+    size = pow(SectorSize / sizeof(int), 3); // sectors per TripleIndirect
+    numTripleIndirect = numIndirect / size + !!(numIndirect % size);
+    if (freeMap->NumClear() < numDirect + numTripleIndirect + numIndirect)
         return FALSE; // not enough space
 
     // if (numSectors <= NumDirect)
@@ -101,17 +101,17 @@ bool FileHeader::Allocate(PersistentBitmap *freeMap, int fileSize)
     }
 
     // for original inode
-    for (int i = 0; i < numSingleIndirect; i++)
+    for (int i = 0; i < numTripleIndirect; i++)
     {
-        singleIndirectSectors[i] = freeMap->FindAndSet();
+        tripleIndirectSectors[i] = freeMap->FindAndSet();
 
-        ASSERT(singleIndirectSectors[i] >= 0);
+        ASSERT(tripleIndirectSectors[i] >= 0);
     }
 
     // for singleIndirect
-    if (numSingleIndirect)
-        table = new SingleIndirect[numSingleIndirect];
-    for (int i = 0; i < numSingleIndirect; i++)
+    if (numTripleIndirect)
+        table = new TripleIndirect[numTripleIndirect];
+    for (int i = 0; i < numTripleIndirect; i++)
     {
         //table[i] = SingleIndirect();
         if (numIndirect > size)
@@ -150,11 +150,11 @@ void FileHeader::Deallocate(PersistentBitmap *freeMap)
             freeMap->Clear((int)dataSectors[i]);
         }
 
-        int numIndirect = numSectors % NumDirect;
-        int size = SectorSize / sizeof(int); // sectors per singleIndirect
-        int numSingleIndirect = numIndirect / size + !!(numIndirect % size);
+        numIndirect = numSectors - NumDirect;
+        size = pow(SectorSize / sizeof(int), 3); // sectors per TripleIndirect
+        numTripleIndirect = numIndirect / size + !!(numIndirect % size);
 
-        for (int i = 0; i < numSingleIndirect; i++)
+        for (int i = 0; i < numTripleIndirect; i++)
         {
             table[i].Deallocate(freeMap);
         }
@@ -174,14 +174,14 @@ void FileHeader::FetchFrom(int sector)
 
     if (numSectors > NumDirect)
     {
-        int numIndirect = numSectors - NumDirect;
-        int size = SectorSize / sizeof(int); // sectors per singleIndirect
-        int numSingleIndirect = numIndirect / size + !!(numIndirect % size);
+        numIndirect = numSectors - NumDirect;
+        size = pow(SectorSize / sizeof(int), 3); // sectors per TripleIndirect
+        numTripleIndirect = numIndirect / size + !!(numIndirect % size);
 
-        table = new SingleIndirect[numSingleIndirect];
-        for (int i = 0; i < numSingleIndirect; i++)
+        table = new TripleIndirect[numTripleIndirect];
+        for (int i = 0; i < numTripleIndirect; i++)
         {
-            table[i].FetchFrom(singleIndirectSectors[i]);
+            table[i].FetchFrom(tripleIndirectSectors[i]);
         }
     }
     /*
@@ -203,13 +203,13 @@ void FileHeader::WriteBack(int sector)
     // cout << NumDirect << endl;
     if (numSectors > NumDirect)
     {
-        int numIndirect = numSectors - NumDirect;
-        int size = SectorSize / sizeof(int); // sectors per singleIndirect
-        int numSingleIndirect = numIndirect / size + !!(numIndirect % size);
+        // numIndirect = numSectors - NumDirect;
+        // size = SectorSize / sizeof(int); // sectors per singleIndirect
+        // numSingleIndirect = numIndirect / size + !!(numIndirect % size);
 
-        for (int i = 0; i < numSingleIndirect; i++)
+        for (int i = 0; i < numTripleIndirect; i++)
         {
-            table[i].WriteBack(singleIndirectSectors[i]);
+            table[i].WriteBack(tripleIndirectSectors[i]);
         }
     }
     /*
@@ -238,10 +238,12 @@ int FileHeader::ByteToSector(int offset)
         return (dataSectors[offset / SectorSize]);
     else
     {
-        // targetSingleIndirectSector
-        int targetSIS = offset / SectorSize - NumDirect;
+        int target_Sector = offset / SectorSize - NumDirect;
+        int Max_Pointer_Of_Sector = pow(SectorSize / sizeof(int), 3);
+        int target_sector_divid = target_Sector / Max_Pointer_Of_Sector;
+        int target_sector_remain = target_Sector % Max_Pointer_Of_Sector;
 
-        return table[targetSIS / 32].ByteToSector(targetSIS % 32 * SectorSize);
+        return table[target_sector_divid].ByteToSector(target_sector_remain * SectorSize);
     }
 }
 

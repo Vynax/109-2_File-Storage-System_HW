@@ -50,7 +50,7 @@
 #define NumDirEntries 64
 const int SectorSize = 128;     // number of bytes per disk sector
 const int SectorsPerTrack = 32; // number of sectors per disk track
-const int NumTracks = 32;       // number of tracks per disk ( 512 for extending disk to 64MB )
+const int NumTracks = 512 * 32; // number of tracks per disk ( 512 for extending disk to 64MB )
 const int NumSectors = (SectorsPerTrack * NumTracks);
 // total # of sectors per disk
 
