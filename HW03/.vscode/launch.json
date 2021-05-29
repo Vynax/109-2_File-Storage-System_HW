@@ -38,14 +38,14 @@
             ]
         },
         {
-            "name": "nachos -cp FS_test1 /FS_test1",
+            "name": "nachos -cp alphabetic_small.txt /alph_small",
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/code/build.linux/nachos",
             "args": [
                 "-cp",
-                "FS_test1",
-                "/FS_test1",
+                "alphabetic_small.txt",
+                "/alph_small",
             ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}/code/test",

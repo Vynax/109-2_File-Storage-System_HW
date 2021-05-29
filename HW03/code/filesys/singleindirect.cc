@@ -22,6 +22,7 @@ bool SingleIndirect::Allocate(PersistentBitmap *freeMap, int sectorAmount)
         // we expect this to succeed
         ASSERT(dataSectors[i] >= 0);
     }
+    return true;
 }
 
 void SingleIndirect::Deallocate(PersistentBitmap *freeMap)
@@ -37,7 +38,7 @@ void SingleIndirect::FetchFrom(int sector)
 {
     kernel->synchDisk->ReadSector(sector, (char *)this);
 
-    int i = 0;
+    // int i = 0;
     int size = SectorSize / sizeof(int); // sectors per singleIndirect
     numSectors = 0;
     while ((dataSectors[numSectors++] != -1) && numSectors < size)

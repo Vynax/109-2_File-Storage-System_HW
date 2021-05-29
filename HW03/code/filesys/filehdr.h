@@ -16,10 +16,10 @@
 
 #include "disk.h"
 #include "pbitmap.h"
-#include "singleindirect.h"
+#include "tripleindirect.h"
 
-#define SingleIndirectNum 8
-#define NumDirect (((SectorSize - 2 * sizeof(int)) / sizeof(int)) - SingleIndirectNum)
+#define TripleIndirectNum 16
+#define NumDirect (((SectorSize - 2 * sizeof(int)) / sizeof(int)) - TripleIndirectNum)
 #define MaxFileSize (NumDirect * SectorSize)
 
 // The following class defines the Nachos "file header" (in UNIX terms,
@@ -83,9 +83,12 @@ private:
     int numSectors;             // Number of data sectors in the file
     int dataSectors[NumDirect]; // Disk sector numbers for each data
                                 // block in the file
-    int singleIndirectSectors[SingleIndirectNum];
+    int tripleIndirectSectors[TripleIndirectNum];
 
-    SingleIndirect *table;
+    TripleIndirect *table;
+    int numIndirect;
+    int numTripleIndirect;
+    int size; // sectors per singleIndirect
 };
 
 #endif // FILEHDR_H
