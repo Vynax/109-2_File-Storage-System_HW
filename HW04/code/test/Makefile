@@ -114,7 +114,7 @@ else
 # change this if you create a new test program!
 #PROGRAMS = add halt shell matmult sort segments test1 test2 a
 #PROGRAMS = add halt consoleIO_test1 consoleIO_test2 fileIO_test1 fileIO_test2
-PROGRAMS = FS_test1 FS_test2 FS_test3
+PROGRAMS = FS_test1 FS_test2 FS_test3 FS_test4
 endif
 
 all: $(PROGRAMS)
@@ -200,6 +200,12 @@ FS_test3.o: FS_test3.c
 FS_test3: FS_test3.o start.o
 	$(LD) $(LDFLAGS) start.o FS_test3.o -o FS_test3.coff
 	$(COFF2NOFF) FS_test3.coff FS_test3
+
+FS_test4.o: FS_test4.c
+	$(CC) $(CFLAGS) -c FS_test4.c
+FS_test4: FS_test4.o start.o
+	$(LD) $(LDFLAGS) start.o FS_test4.o -o FS_test4.coff
+	$(COFF2NOFF) FS_test4.coff FS_test4
 
 clean:
 	$(RM) -f *.o *.ii
