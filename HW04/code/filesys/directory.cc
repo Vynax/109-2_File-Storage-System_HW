@@ -177,6 +177,7 @@ bool Directory::Remove(char *name)
 
 void Directory::List(bool recursive)
 {
+    int inUse_count = 0;
     for (int i = 0; i < tableSize; i++)
     {
         if (table[i].inUse)
@@ -189,8 +190,12 @@ void Directory::List(bool recursive)
                 printf("D");
 
             printf("\n");
+
+            inUse_count++;
         }
     }
+    if (inUse_count == 0)
+        std::cout << "Empty" << std::endl;
 
     if (recursive)
     {
